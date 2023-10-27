@@ -1,0 +1,65 @@
+{
+  "name": "poc-avatarkit",
+  "private": false,
+  "version": "0.1.2",
+  "description": "A lib for generating avatars form a string",
+  "main": "dist/cjs/index.js",
+  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && prettier --write src/**/* && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc",
+    "prepare": "yarn build",
+    "build:cjs": "tsc --module CommonJs --outDir dist/cjs",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xVaibhav11/avatarkit#main"
+  },
+  "keywords": [
+    "avatar",
+    "pfp",
+    "profile",
+    "emoji"
+  ],
+  "author": "0xVaibhav11 <vanoobcoder@gmail.com>",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/0xVaibhav11/avatarkit/issues"
+  },
+  "homepage": "https://poc.hivaibhav.xyz/packages/avatarkit",
+  "devDependencies": {
+    "@babel/preset-env": "^7.23.2",
+    "@babel/preset-react": "^7.22.15",
+    "@babel/preset-typescript": "^7.23.2",
+    "@storybook/addon-essentials": "7.5.1",
+    "@storybook/addon-interactions": "7.5.1",
+    "@storybook/addon-links": "7.5.1",
+    "@storybook/addon-onboarding": "1.0.8",
+    "@storybook/blocks": "7.5.1",
+    "@storybook/react": "7.5.1",
+    "@storybook/react-webpack5": "7.5.1",
+    "@storybook/testing-library": "0.2.2",
+    "@types/node": "^20.4.5",
+    "@types/react": "^18.2.18",
+    "@types/react-dom": "^18.2.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "storybook": "7.5.1",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "@superfluid-finance/sdk-core": "^0.6.12",
+    "ethers": "^6.8.0"
+  }
+}
