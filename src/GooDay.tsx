@@ -1,54 +1,216 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './gooday.css';
+import { ethers } from 'ethers';
+import { createNewFlow } from './Superfluid';
+import { Framework } from '@superfluid-finance/sdk-core';
+interface Account {
+  signer: ethers.providers.JsonRpcSigner;
+  providers: ethers.providers.JsonRpcProvider;
+  address: string;
+}
+export function GooDay() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [AccountInfo, setAccountInfo] = useState<Account>();
 
-export const GooDay = () => {
-  const connectFormHandler = async () => {
-    const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts'
-    });
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    ctx.dataState.addData(provider, signer, accounts[0]);
+  const openModal = () => {
+    setIsModalOpen(true);
   };
+  const reciverId = useRef('');
+  const recierPlatform = useRef('');
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  //where the Superfluid logic takes place
+  async function deleteExistingFlow(recipient: string) {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send('eth_requestAccounts', []);
+
+    const signer = provider.getSigner();
+
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const sf = await Framework.create({
+      chainId: Number(chainId),
+      provider: provider
+    });
+
+    const superSigner = sf.createSigner({ signer: signer });
+
+    console.log(signer);
+    console.log(await superSigner.getAddress());
+    const daix = await sf.loadSuperToken('fDAIx');
+
+    console.log(daix);
+
+    try {
+      const deleteFlowOperation = daix.deleteFlow({
+        sender: await signer.getAddress(),
+        receiver: recipient
+        // userData?: string
+      });
+
+      console.log(deleteFlowOperation);
+      console.log('Deleting your stream...');
+
+      const result = await deleteFlowOperation.exec(superSigner);
+      console.log(result);
+
+      console.log(
+        `Congrats - you've just updated a money stream!
+    `
+      );
+    } catch (error) {
+      console.log("Hmmm, your transaction threw an error. Make sure that this stream does not already exist, and that you've entered a valid Ethereum address!");
+      console.error(error);
+    }
+  }
+
+  async function changeEthereumChain() {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [
+            {
+              chainId: '0x13881', // Chain ID for Celo
+              chainName: 'Mumbai',
+              nativeCurrency: {
+                name: 'Ether',
+                symbol: 'MATIC',
+                decimals: 18
+              },
+              rpcUrls: ['https://rpc-mumbai.maticvigil.com/'],
+              blockExplorerUrls: ['https://mumbai.polygonscan.com/']
+            }
+            // Add more chain configurations here as needed
+          ]
+        });
+      } else {
+        console.error('MetaMask is not installed or not accessible.');
+      }
+    } catch (error) {
+      console.error('Failed to change Ethereum chain:', error);
+    }
+  }
+  // useEffect(() => {
+  //   connectToMetaMask();
+  // }, [isConnected]);
+
+  const connectToMetaMask = async () => {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        const networkId = await window.ethereum.request({ method: 'net_version' });
+
+        if (networkId === '80001') {
+          setIsConnected(true);
+
+          try {
+            const providers = new ethers.providers.Web3Provider(window.ethereum);
+
+            const signer: ethers.providers.JsonRpcSigner = await providers.getSigner();
+            const address = await signer.getAddress();
+            const user = {
+              providers,
+              signer,
+              address
+            };
+
+            setAccountInfo(user);
+            if (networkId != '80001') {
+              changeEthereumChain();
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        } else {
+          console.error('Not connected to Ethereum mainnet');
+        }
+      } else {
+        console.error('MetaMask is not installed or not accessible.');
+      }
+    } catch (error) {
+      console.error('Connection failed:', error);
+    }
+  };
+
   return (
     <div>
-      GooDay
-      <div className="container">
-        <div className="heading">Sign In</div>
-        <form className="form">
-          <input required className="input" type="email" name="email" id="email" placeholder="E-mail" />
-          <input required className="input" type="password" name="password" id="password" placeholder="Password" />
-          <span className="forgot-password">
-            <a href="#">Forgot Password ?</a>
-          </span>
-          <input className="login-button" type="submit" defaultValue="Sign In" />
-        </form>
-        <iframe src="https://giphy.com/embed/3oGRFrD8HqAUe5CXIc" width={480} height={360} className="giphy-embed" allowFullScreen />
+      <div>
+        <div>
+          <button onClick={openModal}>Open Modal</button>
 
-        <div className="social-account-container">
-          <span className="title">Or Sign in with</span>
-          <div className="social-accounts">
-            <button className="social-button google">
-              <svg className="svg" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 488 512">
-                <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
-              </svg>
+          <div className="card" style={{ display: isModalOpen ? 'block' : 'none' }}>
+            <button className="dismiss" onClick={closeModal} type="button">
+              ×
             </button>
-            <button className="social-button apple">
-              <svg className="svg" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 384 512">
-                <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-              </svg>
-            </button>
-            <button className="social-button twitter">
-              <svg className="svg" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
-                <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
-              </svg>
-            </button>
+            <div className="header">
+              <div className="content">
+                <span className="title"> STREM G$ TO ANY ONE</span>
+              </div>
+              <div>
+                {isConnected ? (
+                  <div>{`${AccountInfo?.address.slice(0, 4)}...${AccountInfo?.address.slice(AccountInfo.address.length - 4, AccountInfo.address.length)}`}</div>
+                ) : (
+                  <button onClick={connectToMetaMask}>Connect</button>
+                )}
+              </div>
+
+              <div className="actions">
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-around'
+                  }}
+                >
+                  <div>
+                    {' '}
+                    Enter Reciver
+                    <input
+                      className="search"
+                      onChange={(e) => {
+                        reciverId.current = e.target.value;
+                        console.log(reciverId.current);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    select Platform
+                    <select className="selectplatform" name="" id="">
+                      <option value="">twitter</option>
+                      <option value="">lens</option>
+                      <option value="">Address</option>
+                      <option value="">dot bit</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  className="track"
+                  onClick={() => {
+                    createNewFlow(reciverId.current, '100');
+                  }}
+                  type="button"
+                >
+                  PAY
+                </button>
+                <button
+                  className="track"
+                  onClick={() => {
+                    deleteExistingFlow(reciverId.current);
+                  }}
+                  type="button"
+                >
+                  DELET
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <span className="agreement">
-          <a href="#">Learn user licence agreement</a>
-        </span>
       </div>
     </div>
   );
-};
+}
