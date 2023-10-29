@@ -1,139 +1,104 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './gooday.css';
-import { ethers } from 'ethers';
-import { createNewFlow } from './Superfluid';
-import { Framework } from '@superfluid-finance/sdk-core';
+import React, { useState, useRef } from "react";
+import "./gooday.css";
+import { chainid } from "./constant";
+import { ethers } from "ethers";
+import { getGraph } from "./hooks/NextId";
+import {
+  createNewFlow,
+  deleteExistingFlow,
+  GetFlow,
+  UpdateFlow,
+} from "./Superfluid";
+import { CheckChain, changeEthereumChain, connectToMetaMask } from "./MetaMask";
 interface Account {
   signer: ethers.providers.JsonRpcSigner;
   providers: ethers.providers.JsonRpcProvider;
   address: string;
 }
+
+// Main function
 export function GooDay() {
+  //  states of function
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [AccountInfo, setAccountInfo] = useState<Account>();
+  const [selectedOption, setSelectedOption] = useState<string>("");
+
+  const [updateFlag, setUpadateFlag] = useState(false);
+  const [flowR, setFlowR] = useState("");
+  const [flowRateFlag, setFlowRateFlag] = useState(false);
+  // input variables
+  const reciverId = useRef("");
+  const FlowRate = useRef("");
 
   const openModal = () => {
     setIsModalOpen(true);
   };
-  const reciverId = useRef('');
-  const recierPlatform = useRef('');
-
   const closeModal = () => {
     setIsModalOpen(false);
   };
 
-  //where the Superfluid logic takes place
-  async function deleteExistingFlow(recipient: string) {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send('eth_requestAccounts', []);
+  const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    setSelectedOption(selectedValue);
+  };
 
-    const signer = provider.getSigner();
+  const handleConnect = async () => {
+    const network = await CheckChain();
 
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    const sf = await Framework.create({
-      chainId: Number(chainId),
-      provider: provider
-    });
+    const user = await connectToMetaMask();
+    setAccountInfo(user);
 
-    const superSigner = sf.createSigner({ signer: signer });
-
-    console.log(signer);
-    console.log(await superSigner.getAddress());
-    const daix = await sf.loadSuperToken('fDAIx');
-
-    console.log(daix);
-
-    try {
-      const deleteFlowOperation = daix.deleteFlow({
-        sender: await signer.getAddress(),
-        receiver: recipient
-        // userData?: string
-      });
-
-      console.log(deleteFlowOperation);
-      console.log('Deleting your stream...');
-
-      const result = await deleteFlowOperation.exec(superSigner);
-      console.log(result);
-
-      console.log(
-        `Congrats - you've just updated a money stream!
-    `
-      );
-    } catch (error) {
-      console.log("Hmmm, your transaction threw an error. Make sure that this stream does not already exist, and that you've entered a valid Ethereum address!");
-      console.error(error);
+    if (network != chainid) {
+      await changeEthereumChain();
     }
-  }
-
-  async function changeEthereumChain() {
+    setIsConnected(true);
+  };
+  const handleCheck = async () => {
     try {
-      if (typeof window.ethereum !== 'undefined') {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: '0x13881', // Chain ID for Celo
-              chainName: 'Mumbai',
-              nativeCurrency: {
-                name: 'Ether',
-                symbol: 'MATIC',
-                decimals: 18
-              },
-              rpcUrls: ['https://rpc-mumbai.maticvigil.com/'],
-              blockExplorerUrls: ['https://mumbai.polygonscan.com/']
-            }
-            // Add more chain configurations here as needed
-          ]
-        });
-      } else {
-        console.error('MetaMask is not installed or not accessible.');
-      }
-    } catch (error) {
-      console.error('Failed to change Ethereum chain:', error);
-    }
-  }
-  // useEffect(() => {
-  //   connectToMetaMask();
-  // }, [isConnected]);
-
-  const connectToMetaMask = async () => {
-    try {
-      if (typeof window.ethereum !== 'undefined') {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-
-        const networkId = await window.ethereum.request({ method: 'net_version' });
-
-        if (networkId === '80001') {
-          setIsConnected(true);
-
-          try {
-            const providers = new ethers.providers.Web3Provider(window.ethereum);
-
-            const signer: ethers.providers.JsonRpcSigner = await providers.getSigner();
-            const address = await signer.getAddress();
-            const user = {
-              providers,
-              signer,
-              address
-            };
-
-            setAccountInfo(user);
-            if (networkId != '80001') {
-              changeEthereumChain();
-            }
-          } catch (e) {
-            console.log(e);
-          }
+      if (reciverId.current == "") {
+        alert("pelase enter revicer address or id ");
+        return;
+      } else if (selectedOption == "") {
+        alert("please enter  plateform id ");
+        return;
+      } else if (FlowRate.current == "") {
+        alert("please Enter flow Rate");
+        return;
+      } else if (selectedOption == "eao") {
+        if (reciverId.current.length != 42) {
+          alert("please enter correct address");
         } else {
-          console.error('Not connected to Ethereum mainnet');
+          const check: any = await GetFlow(reciverId.current);
+          console.log(check.flowRate);
+
+          setFlowRateFlag(true);
+
+          if (check.flowRate === "0") {
+            setUpadateFlag(false);
+            return;
+          } else {
+            setFlowR(check.flowRate);
+            setUpadateFlag(true);
+          }
         }
       } else {
-        console.error('MetaMask is not installed or not accessible.');
+        const reciver = await getGraph(selectedOption, reciverId.current);
+
+        const check: any = await GetFlow(reciver);
+        console.log(check.flowRate);
+        if (check.flowRate === "0") {
+          setUpadateFlag(false);
+          return;
+        } else {
+          setFlowR(check.flowRate);
+          setUpadateFlag(true);
+        }
       }
-    } catch (error) {
-      console.error('Connection failed:', error);
+    } catch (e) {
+      console.log(e);
+      alert("please enter Correct platform and id ");
     }
   };
 
@@ -143,7 +108,10 @@ export function GooDay() {
         <div>
           <button onClick={openModal}>Open Modal</button>
 
-          <div className="card" style={{ display: isModalOpen ? 'block' : 'none' }}>
+          <div
+            className="card"
+            style={{ display: isModalOpen ? "block" : "none" }}
+          >
             <button className="dismiss" onClick={closeModal} type="button">
               ×
             </button>
@@ -153,21 +121,33 @@ export function GooDay() {
               </div>
               <div>
                 {isConnected ? (
-                  <div>{`${AccountInfo?.address.slice(0, 4)}...${AccountInfo?.address.slice(AccountInfo.address.length - 4, AccountInfo.address.length)}`}</div>
+                  <div>{`${AccountInfo?.address.slice(
+                    0,
+                    4
+                  )}...${AccountInfo?.address.slice(
+                    AccountInfo.address.length - 4,
+                    AccountInfo.address.length
+                  )}`}</div>
                 ) : (
-                  <button onClick={connectToMetaMask}>Connect</button>
+                  <button
+                    onClick={() => {
+                      handleConnect();
+                    }}
+                  >
+                    Connect
+                  </button>
                 )}
               </div>
 
               <div className="actions">
                 <div
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-around'
+                    display: "flex",
+                    justifyContent: "space-around",
                   }}
                 >
                   <div>
-                    {' '}
+                    {" "}
                     Enter Reciver
                     <input
                       className="search"
@@ -177,35 +157,81 @@ export function GooDay() {
                       }}
                     />
                   </div>
+
                   <div>
                     select Platform
-                    <select className="selectplatform" name="" id="">
-                      <option value="">twitter</option>
-                      <option value="">lens</option>
-                      <option value="">Address</option>
-                      <option value="">dot bit</option>
+                    <select
+                      className="selectplatform"
+                      defaultValue={"eao"}
+                      id="selectOption"
+                      onChange={handleOptionChange}
+                    >
+                      <option value="twitter">twitter</option>
+                      <option value="lens">lens</option>
+                      <option value="eao">EOA</option>
+                      <option value="dotbit">dotbit</option>
+                      <option value="ens">ENS</option>
+                      <option value="farcaster">FarCaster</option>
                     </select>
                   </div>
                 </div>
+                <div>
+                  {" "}
+                  Enter FlowRate (G$/month)
+                  <input
+                    className="search"
+                    onChange={(e) => {
+                      FlowRate.current = e.target.value;
+                      console.log(FlowRate.current);
+                    }}
+                  />
+                </div>
 
-                <button
-                  className="track"
-                  onClick={() => {
-                    createNewFlow(reciverId.current, '100');
-                  }}
-                  type="button"
-                >
-                  PAY
-                </button>
-                <button
-                  className="track"
-                  onClick={() => {
-                    deleteExistingFlow(reciverId.current);
-                  }}
-                  type="button"
-                >
-                  DELET
-                </button>
+                {!flowRateFlag && (
+                  <button
+                    className="track"
+                    onClick={() => {
+                      handleCheck();
+                    }}
+                    type="button"
+                  >
+                    Check data
+                  </button>
+                )}
+
+                {!updateFlag ? (
+                  <button
+                    className="track"
+                    onClick={() => {
+                      createNewFlow(reciverId.current, FlowRate.current);
+                    }}
+                    type="button"
+                  >
+                    Create New Flow
+                  </button>
+                ) : (
+                  <>
+                    <div>You already have a flow of flowRate : {flowR}</div>
+                    <button
+                      className="track"
+                      onClick={() => {
+                        deleteExistingFlow(reciverId.current);
+                      }}
+                      type="button"
+                    >
+                      Delete FLow
+                    </button>
+                    <button
+                      className="track"
+                      onClick={() => {
+                        UpdateFlow(reciverId.current, FlowRate.current);
+                      }}
+                      type="button"
+                    >
+                      Update Flow
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
 {
-  "name": "poc-avatarkit",
+  "name": "goodday-sdk",
   "private": false,
-  "version": "0.1.2",
-  "description": "A lib for generating avatars form a string",
+  "version": "0.0.1",
+  "description": "A lib for streaming G$ token to any account",
   "main": "dist/cjs/index.js",
   "types": "dist/esm/index.d.ts",
   "module": "dist/esm/index.js",
@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && prettier --write src/**/* && npm run build:esm && npm run build:cjs",
+    "build": "rm -rf dist  && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc",
     "prepare": "yarn build",
     "build:cjs": "tsc --module CommonJs --outDir dist/cjs",
@@ -33,7 +33,6 @@
   "bugs": {
     "url": "https://github.com/0xVaibhav11/avatarkit/issues"
   },
-  "homepage": "https://poc.hivaibhav.xyz/packages/avatarkit",
   "devDependencies": {
     "@babel/preset-env": "^7.23.2",
     "@babel/preset-react": "^7.22.15",
@@ -56,9 +55,14 @@
   },
   "peerDependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "@apollo/client": "^3.8.6",
+    "@superfluid-finance/sdk-core": "^0.6.12",
+    "ethers": "5.7.2",
+    "graphql": "^16.8.1"
   },
   "dependencies": {
+    "@apollo/client": "^3.8.6",
     "@superfluid-finance/sdk-core": "^0.6.12",
     "ethers": "5.7.2",
     "graphql": "^16.8.1"
