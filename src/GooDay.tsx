@@ -10,21 +10,22 @@ import {
   UpdateFlow,
 } from "./Superfluid";
 import { CheckChain, changeEthereumChain, connectToMetaMask } from "./MetaMask";
-interface Account {
+
+type Account = {
   signer: ethers.providers.JsonRpcSigner;
   providers: ethers.providers.JsonRpcProvider;
   address: string;
-}
+};
 
 // Main function
-export function GooDay() {
+export const GooDay = () => {
   //  states of function
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [AccountInfo, setAccountInfo] = useState<Account>();
   const [selectedOption, setSelectedOption] = useState<string>("");
-
+  const [PayAdd, setPayAdd] = useState("");
   const [updateFlag, setUpadateFlag] = useState(false);
   const [flowR, setFlowR] = useState("");
   const [flowRateFlag, setFlowRateFlag] = useState(false);
@@ -55,6 +56,7 @@ export function GooDay() {
     }
     setIsConnected(true);
   };
+
   const handleCheck = async () => {
     try {
       if (reciverId.current == "") {
@@ -70,6 +72,7 @@ export function GooDay() {
         if (reciverId.current.length != 42) {
           alert("please enter correct address");
         } else {
+          setPayAdd(reciverId.current);
           const check: any = await GetFlow(reciverId.current);
           console.log(check.flowRate);
 
@@ -85,7 +88,7 @@ export function GooDay() {
         }
       } else {
         const reciver = await getGraph(selectedOption, reciverId.current);
-
+        setPayAdd(reciver);
         const check: any = await GetFlow(reciver);
         console.log(check.flowRate);
         if (check.flowRate === "0") {
@@ -186,7 +189,7 @@ export function GooDay() {
                     }}
                   />
                 </div>
-
+                {PayAdd != "" && <div>Reciver = {PayAdd}</div>}
                 {!flowRateFlag && (
                   <button
                     className="track"
@@ -203,7 +206,7 @@ export function GooDay() {
                   <button
                     className="track"
                     onClick={() => {
-                      createNewFlow(reciverId.current, FlowRate.current);
+                      createNewFlow(PayAdd, FlowRate.current);
                     }}
                     type="button"
                   >
@@ -215,7 +218,7 @@ export function GooDay() {
                     <button
                       className="track"
                       onClick={() => {
-                        deleteExistingFlow(reciverId.current);
+                        deleteExistingFlow(PayAdd);
                       }}
                       type="button"
                     >
@@ -224,7 +227,7 @@ export function GooDay() {
                     <button
                       className="track"
                       onClick={() => {
-                        UpdateFlow(reciverId.current, FlowRate.current);
+                        UpdateFlow(PayAdd, FlowRate.current);
                       }}
                       type="button"
                     >
@@ -239,4 +242,6 @@ export function GooDay() {
       </div>
     </div>
   );
-}
+};
+
+///css for this page

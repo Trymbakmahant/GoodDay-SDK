@@ -1,22 +1,24 @@
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 
 export const connectToMetaMask = async () => {
   try {
-    if (typeof window.ethereum !== 'undefined') {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if (typeof window.ethereum !== "undefined") {
+      await window.ethereum.request({ method: "eth_requestAccounts" });
 
-      const networkId = await window.ethereum.request({ method: 'net_version' });
+      const networkId = await window.ethereum.request({
+        method: "net_version",
+      });
       console.log(networkId);
 
       try {
         const providers = new ethers.providers.Web3Provider(window.ethereum);
 
-        const signer: ethers.providers.JsonRpcSigner = await providers.getSigner();
+        const signer = await providers.getSigner();
         const address = await signer.getAddress();
         const user = {
-          providers,
           signer,
-          address
+          providers,
+          address,
         };
 
         return user;
@@ -25,37 +27,37 @@ export const connectToMetaMask = async () => {
         console.log(e);
       }
     } else {
-      console.error('MetaMask is not installed or not accessible.');
+      console.error("MetaMask is not installed or not accessible.");
     }
   } catch (error) {
-    console.error('Connection failed:', error);
+    console.error("Connection failed:", error);
   }
 };
 
 export async function changeEthereumChain() {
   try {
     await connectToMetaMask();
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window.ethereum !== "undefined") {
       await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x13881' }]
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x13881" }],
       });
     } else {
-      console.error('MetaMask is not installed or not accessible.');
+      console.error("MetaMask is not installed or not accessible.");
     }
   } catch (error) {
-    console.error('Failed to change Ethereum chain:', error);
+    console.error("Failed to change Ethereum chain:", error);
   }
 }
 
 export const CheckChain = async () => {
-  if (typeof window.ethereum !== 'undefined') {
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  if (typeof window.ethereum !== "undefined") {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
 
-    const networkId = await window.ethereum.request({ method: 'net_version' });
+    const networkId = await window.ethereum.request({ method: "net_version" });
     console.log(networkId);
     return networkId;
   } else {
-    console.log('install metamask ');
+    console.log("install metamask ");
   }
 };
