@@ -10,18 +10,22 @@
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "build": "webpack"
+    "build": "webpack",
+    "chromatic": "npx chromatic --project-token=chpt_243be9a40bfaa7b"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Trymbakmahant/GoodDay-SDK"
+    "url": "git+https://github.com/Trymbakmahant/GoodDay-SDK.git"
   },
   "keywords": [
     "superfluid",
     "masknetwork",
     "goodDollar"
   ],
-  "author": "Trymbak Mahant <trymbak0102mahant@gmail.com>",
+  "author": {
+    "name": "Trymbak Mahant",
+    "email": "trymbak0102mahant@gmail.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Trymbakmahant/GoodDay-SDK/issues"
@@ -41,6 +45,7 @@
     "@types/node": "^20.4.5",
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.7",
+    "chromatic": "^7.5.4",
     "css-loader": "^6.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -64,5 +69,8 @@
     "@superfluid-finance/sdk-core": "^0.6.12",
     "ethers": "5.7.2",
     "graphql": "^16.8.1"
-  }
+  },
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/Trymbakmahant/GoodDay-SDK#readme",
+  "_id": "goodday-sdk@0.0.3"
 }

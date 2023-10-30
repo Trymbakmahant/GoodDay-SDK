@@ -63,6 +63,7 @@ export const GooDay = () => {
         alert("pelase enter revicer address or id ");
         return;
       } else if (selectedOption == "") {
+        console.log(selectedOption);
         alert("please enter  plateform id ");
         return;
       } else if (FlowRate.current == "") {
@@ -80,10 +81,12 @@ export const GooDay = () => {
 
           if (check.flowRate === "0") {
             setUpadateFlag(false);
+            setFlowRateFlag(true);
             return;
           } else {
             setFlowR(check.flowRate);
             setUpadateFlag(true);
+            setFlowRateFlag(true);
           }
         }
       } else {
@@ -93,10 +96,12 @@ export const GooDay = () => {
         console.log(check.flowRate);
         if (check.flowRate === "0") {
           setUpadateFlag(false);
+          setFlowRateFlag(true);
           return;
         } else {
           setFlowR(check.flowRate);
           setUpadateFlag(true);
+          setFlowRateFlag(true);
         }
       }
     } catch (e) {
@@ -165,10 +170,11 @@ export const GooDay = () => {
                     select Platform
                     <select
                       className="selectplatform"
-                      defaultValue={"eao"}
+                      defaultValue={"none"}
                       id="selectOption"
                       onChange={handleOptionChange}
                     >
+                      <option value="none">Select</option>
                       <option value="twitter">twitter</option>
                       <option value="lens">lens</option>
                       <option value="eao">EOA</option>
@@ -190,7 +196,7 @@ export const GooDay = () => {
                   />
                 </div>
                 {PayAdd != "" && <div>Reciver = {PayAdd}</div>}
-                {!flowRateFlag && (
+                {!flowRateFlag ? (
                   <button
                     className="track"
                     onClick={() => {
@@ -200,39 +206,46 @@ export const GooDay = () => {
                   >
                     Check data
                   </button>
-                )}
-
-                {!updateFlag ? (
-                  <button
-                    className="track"
-                    onClick={() => {
-                      createNewFlow(PayAdd, FlowRate.current);
-                    }}
-                    type="button"
-                  >
-                    Create New Flow
-                  </button>
                 ) : (
                   <>
-                    <div>You already have a flow of flowRate : {flowR}</div>
-                    <button
-                      className="track"
-                      onClick={() => {
-                        deleteExistingFlow(PayAdd);
-                      }}
-                      type="button"
-                    >
-                      Delete FLow
-                    </button>
-                    <button
-                      className="track"
-                      onClick={() => {
-                        UpdateFlow(PayAdd, FlowRate.current);
-                      }}
-                      type="button"
-                    >
-                      Update Flow
-                    </button>
+                    {!updateFlag ? (
+                      <>
+                        <div>
+                          You don't have any running stream please create one
+                        </div>
+                        <button
+                          className="track"
+                          onClick={() => {
+                            createNewFlow(PayAdd, FlowRate.current);
+                          }}
+                          type="button"
+                        >
+                          Create New Flow
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div>You already have a flow of flowRate : {flowR}</div>
+                        <button
+                          className="track"
+                          onClick={() => {
+                            deleteExistingFlow(PayAdd);
+                          }}
+                          type="button"
+                        >
+                          Delete FLow
+                        </button>
+                        <button
+                          className="track"
+                          onClick={() => {
+                            UpdateFlow(PayAdd, FlowRate.current);
+                          }}
+                          type="button"
+                        >
+                          Update Flow
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
               </div>

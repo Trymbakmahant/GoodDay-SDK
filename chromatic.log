@@ -1,0 +1,11 @@
+
+Chromatic CLI v7.5.4
+https://www.chromatic.com/docs/cli
+
+Authenticating with Chromatic
+    → Connecting to https://index.chromatic.com
+Authenticated with Chromatic
+    → Using project token '****************aa7b'
+Retrieving git information
+Skipping build
+    → Skipping rebuild of an already fully passed/accepted build
